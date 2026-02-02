@@ -2,11 +2,12 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { validateYouTubeUrl } from '../utils/validators.js';
+import { analyzeVideo } from '../controllers/gemini.controller.js';
 
 const router = express.Router();
 
 
-router.get('/video/youTube', (req, res) => {
+router.get('/video/youTube', async (req, res) => {
     try {
         const { youtubeUrl } = req.body;
 
@@ -20,11 +21,11 @@ router.get('/video/youTube', (req, res) => {
         }
 
         // Create job
-        const job = createJob(youtubeUrl, email);
-
+        // const job = createJob(youtubeUrl, email);
+        await analyzeVideo(youtubeUrl)
         res.json({
-            jobId: job.jobId,
-            status: job.status
+            jobId: null,
+            status: null
         });
     } catch (error) {
         console.error('Error creating job:', error);

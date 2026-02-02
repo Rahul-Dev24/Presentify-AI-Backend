@@ -6,6 +6,13 @@ datasource db {
   provider = "postgresql"
 }
 
+enum FileType {
+  YOUTUBE
+  VIDEO
+  AUDIO
+  SCREEN_RECORD
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   fName     String
@@ -13,4 +20,19 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+  updateAt  DateTime @default(now())
+  file      File[]   @relation("userModel")
+}
+
+model File {
+  id       Int      @id @default(autoincrement())
+  videoId  String?
+  audioId  String?
+  videoUrl String?
+  audioUrl String?
+  user     User     @relation("userModel", fields: [id], references: [id])
+  type     FileType
+
+  createdAt DateTime @default(now())
+  updateAt  DateTime @default(now())
 }
