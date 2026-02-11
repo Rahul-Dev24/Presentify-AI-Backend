@@ -9,6 +9,7 @@ import { getPrompt } from "../utils/prompt.js";
 
 export async function analyzeVideo(youtubeUrl) {
     try {
+
         const audioUrl = await getAudioAndUpload(youtubeUrl);
 
         const transcriptText = await transcribeYoutubeVideo(audioUrl);
@@ -21,7 +22,7 @@ export async function analyzeVideo(youtubeUrl) {
         const prompt = getPrompt(transcriptText);
 
         console.log('Sending request to Gemini...');
-
+        return
         // Make direct REST API call with YouTube URL support (use v1beta for video features)
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 

@@ -1,64 +1,66 @@
-
-
 export function getPrompt(transcriptText) {
-    return `You are an advanced knowledge analysis system acting like NotebookLM.
+  return `
+You are an advanced knowledge analysis system like NotebookLM.
 
-Input: A full video TRANSCRIPT as plain text.
-(The video has already been converted into text. You do NOT need to access or watch the video.)
+INPUT:
+Full video TRANSCRIPT as plain text.
 
-Task:
-Analyze the provided transcript end-to-end and extract detailed, structured, presentation-ready notes that can be directly converted into an editable PowerPoint (PPT) using the Gemini Canvas API.
+LANGUAGE:
+Auto-detect the transcript language. Always respond in clear, simple English.
 
-Instructions:
-1. Read and understand the entire transcript carefully.
-2. Identify the main topic and all subtopics discussed.
-3. Split the content into logical sections, where each section represents EXACTLY ONE PPT slide.
-4. Ignore filler speech, pauses, repeated phrases, greetings, jokes, and irrelevant conversation.
-5. Infer slide boundaries based on topic transitions, explanations, or teaching flow.
-6. For each section, generate:
-   - A clear and concise slide title (infer if not explicitly stated)
-   - Clean, meaningful bullet points suitable for slides
-   - Detailed NotebookLM-style notes explaining the concept clearly and accurately
-   - Speaker notes written as if presenting the slide to an audience
-7. Include definitions, steps, formulas, examples, processes, or key explanations if present in the transcript.
-8. Maintain correct logical flow, educational accuracy, and clarity.
+TASK:
+Convert the transcript into structured, presentation-ready content for an editable PPT using the Gemini Canvas API.
 
-CRITICAL JSON RULES (MUST FOLLOW):
-- Output MUST be valid JSON
+RULES:
+- Read the full transcript
+- Identify main topic and subtopics
+- Split content into logical sections
+- EACH section = EXACTLY ONE slide
+- Ignore fillers (greetings, jokes, repetition, irrelevant talk)
+- Infer slide breaks from topic flow
+
+FOR EACH SLIDE:
+- Clear inferred title
+- Slide-friendly bullet points
+- Detailed explanation
+- Speaker notes
+- Include definitions, steps, formulas, examples if present
+
+JSON (STRICT):
+- Output ONLY a valid JSON array
 - Use ONLY double quotes (")
-- Do NOT include markdown or code blocks
-- Do NOT include line breaks inside string values
-- Escape all internal quotes using backslash (\")
-- Do NOT include trailing commas
-- Validate JSON before responding
+- Escape quotes with \\\"
+- No markdown, no trailing commas, no extra text
 
-Output Format:
-Return ONLY a valid JSON array in the following exact structure:
+HTML:
+- "htmlContent" must be a single-line string
+- No real line breaks (use \\n if needed)
+- Use only: div, h1, h2, p, ul, li
+- Must be designMode editable
 
+SLIDES:
+- Rotate layouts: Hero, Bullets, Two-column, Grid/Cards, Quote, Step-by-step
+- Use ONE consistent theme across ALL slides
+- Modern AI look, Flexbox/Grid, vw-based fonts
+- Use standard PowerPoint Widescreen (16:9)
+
+SVG & ANIMATION:
+- 1–3 inline SVGs per slide
+- Include <style> with at least one @keyframes
+- Apply animation: 0.8s ease-out forwards
+
+OUTPUT FORMAT:
 [
   {
     "slideIndex": 1,
-    "title": "Slide title",
-    "bulletPoints": [
-      "Bullet point one",
-      "Bullet point two",
-      "Bullet point three"
-    ],
-    "detailedNotes": "Single-line NotebookLM-style explanation of this slide content.",
-    "speakerNotes": "Single-line presenter notes explaining how to speak about this slide."
-    "relatedImage": "Image URL for discribing the slide content."
+    "title": "Internal Title",
+    "htmlContent": "<div><style>@keyframes fade{...}</style><svg>...</svg><h1>Title</h1><p>Content</p></div>",
+    "detailedNotes": "Explanation",
+    "speakerNotes": "Presenter script"
   }
 ]
 
-Rules:
-- Output ONLY JSON
-- Do NOT include any text outside the JSON array
-- Each JSON object MUST represent exactly one PPT slide
-- Ensure content is clean, structured, and reusable for PPT generation
-- If the transcript contains no meaningful instructional content, return an empty array []
-
-The JSON output will be sent directly to the Gemini Canvas API to generate an editable PPT.
-TRANSCRIPT :
-  ${transcriptText}
-`
+TRANSCRIPT:
+${transcriptText}
+`;
 }

@@ -1,103 +1,230 @@
-// import youtubedl from "youtube-dl-exec";
-// import { AssemblyAI } from 'assemblyai';
-// import { pipeline } from 'node:stream/promises';
-// import fs from 'node:fs';
-// import { Readable } from 'node:stream';
-// import path from 'path';
+import youtubedl from "youtube-dl-exec";
+import path from "path";
+import fs from "fs";
+import { uploadFile } from "./cloud.utils.js";
+import { getYoutubeVideoId } from "../controllers/video.controller.js";
 
-// const client = new AssemblyAI({ apiKey: process.env.ASSEMBLYAI_API_KEY });
+// export async function getAudioVideoAndUpload(youtubeUrl) {
+//     return new Promise(async (resolve, reject) => {
+//         const id = Date.now();
 
-// export async function getAudioAndUpload(youtubeUrl) {
-//     try {
-//         // 1. Get the restricted stream URL
-//         const result = await youtubedl(youtubeUrl, {
-//             format: "bestaudio",
-//             getUrl: true,
-//             noCheckCertificates: true,
-//             noWarnings: true,
-//             addHeader: ["referer:youtube.com", "user-agent:googlebot"]
-//         });
+//         // const audioTemplate = path.join(process.cwd(), `audio_${id}.%(ext)s`);
+//         const videoTemplate = path.join(process.cwd(), `video_${id}.%(ext)s`);
 
-//         const directStreamUrl = Array.isArray(result) ? result[0] : result;
+//         let audioPath, videoPath;
 
-//         // // 2. Define a temp path to save the file
-//         // const tempFilePath = path.join(process.cwd(), `temp_audio_${Date.now()}.mp3`);
+//         const youtubeId = getYoutubeVideoId(youtubeUrl);
 
-//         // console.log("Downloading stream to local server...");
+//         try {
 
-//         // // 3. Use Fetch to get the data and Stream it to a file
-//         // const response = await fetch(directStreamUrl);
-//         // if (!response.ok) throw new Error(`Failed to fetch stream: ${response.statusText}`);
+//             // 1️⃣ Download audio + video
+//             await Promise.all([
+//                 // AUDIO
+//                 // await youtubedl(youtubeUrl, {
+//                 //     extractAudio: true,
+//                 //     audioFormat: "mp3",
+//                 //     audioQuality: "128K",
+//                 //     output: audioTemplate,
+//                 //     noPlaylist: true,
+//                 //     jsRuntimes: "node",
+//                 //     extractorArgs: "youtube:player_client=android",
+//                 // }),
 
-//         // const arrayBuffer = await response.arrayBuffer();
-//         // const buffer = Buffer.from(arrayBuffer);
+//                 // VIDEO (FORCE MP4)
+//                 await youtubedl(youtubeUrl, {
+//                     format: "bestvideo[height<=480]+bestaudio/best",
+//                     mergeOutputFormat: "mp4",   // 🔥 IMPORTANT
+//                     output: videoTemplate,
+//                     noPlaylist: true,
+//                     jsRuntimes: "node",
+//                     extractorArgs: "youtube:player_client=android",
+//                 }),
+//             ]);
 
-//         // // If the file is generated locally, return the local url
-//         // const localUrl = `file://${tempFilePath}`;
-//         // fs.writeFileSync(tempFilePath, buffer);
+//             audioPath = fs.readdirSync(process.cwd())
+//                 .find(f => f.startsWith(`audio_${id}`));
 
-//         // return localUrl;
+//             videoPath = fs.readdirSync(process.cwd())
+//                 .find(f => f.startsWith(`video_${id}`));
 
+//             if (!audioPath || !videoPath) {
+//                 throw new Error("Download failed: output files not found");
+//             }
 
+//             audioPath = path.join(process.cwd(), audioPath);
+//             videoPath = path.join(process.cwd(), videoPath);
 
-//         const tempFilePath = path.join(process.cwd(), `temp_audio_${Date.now()}.mp3`);
+//             const metadata = await getYoutubeMetadata(youtubeUrl);
 
-//         console.log("⚡ Streaming audio directly to disk...");
+//             console.log("☁️ Uploading to Cloudinary...");
 
-//         const response = await fetch(directStreamUrl);
-//         if (!response.ok) throw new Error(`Failed to fetch stream: ${response.statusText}`);
+//             // 3️⃣ Upload in parallel
+//             const [audioUpload, videoUpload] = await Promise.all([
+//                 uploadFile(audioPath),
+//                 uploadFile(videoPath, {
+//                     resource_type: "video",
+//                     quality: "auto:low",
+//                     fetch_format: "mp4",
+//                 }),
+//             ]);
 
-//         // pipeline connects the download (body) directly to the file (writeStream)
-//         // It finishes as soon as the download is done, without holding the whole file in RAM
-//         await pipeline(
-//             Readable.fromWeb(response.body),
-//             fs.createWriteStream(tempFilePath)
-//         );
+//             // 4️⃣ Cleanup
+//             fs.unlinkSync(audioPath);
+//             fs.unlinkSync(videoPath);
 
-//         return `file://${tempFilePath}`;
+//             resolve({
+//                 youtube: {
+//                     ...metadata
+//                 },
+//                 cloudinary: {
+//                     audioUrl: audioUpload.secure_url,
+//                     audioObj: audioUpload,
+//                     videoUrl: videoUpload.secure_url,
+//                     videoObj: videoUpload,
+//                 },
+//             });
 
-//     } catch (err) {
-//         console.error("Audio processing failed:", err.message);
-//         throw err;
-//     }
+//         } catch (err) {
+//             reject(err);
+//         }
+//     })
 // }
 
 
-import youtubedl from "youtube-dl-exec";
-import path from "path";
+export async function getAudioVideoAndUpload(youtubeUrl) {
+    return new Promise(async (resolve, reject) => {
+        const id = Date.now();
 
-export async function getAudioAndUpload(youtubeUrl) {
-    const outputPath = path.join(
-        process.cwd(),
-        `temp_audio_${Date.now()}.mp3`
-    );
+        const videoTemplate = path.join(process.cwd(), `video_${id}.%(ext)s`);
 
-    try {
-        console.log("⬇️ yt-dlp downloading audio (ANDROID client)...");
+        let videoPath;
 
-        await youtubedl(youtubeUrl, {
-            extractAudio: true,
-            audioFormat: "mp3",
-            audioQuality: "192K",
-            output: outputPath,
+        const youtubeId = getYoutubeVideoId(youtubeUrl);
 
-            noPlaylist: true,
+        try {
 
-            // REQUIRED
-            jsRuntimes: "node",
+            // 1️⃣ Download VIDEO only
+            await Promise.all([
+                await youtubedl(youtubeUrl, {
+                    format: "bestvideo[height<=480]+bestaudio/best",
+                    mergeOutputFormat: "mp4",   // 🔥 IMPORTANT
+                    output: videoTemplate,
+                    noPlaylist: true,
+                    jsRuntimes: "node",
+                    extractorArgs: "youtube:player_client=android",
+                }),
+            ]);
 
-            // 🔥 THIS FIXES SABR
-            extractorArgs: "youtube:player_client=android",
+            videoPath = fs.readdirSync(process.cwd())
+                .find(f => f.startsWith(`video_${id}`));
 
-            // Safety
-            format: "bestaudio/best",
-        });
+            if (!videoPath) {
+                throw new Error("Download failed: video file not found");
+            }
 
-        console.log("✅ Audio saved:", outputPath);
-        return `file://${outputPath}`;
+            videoPath = path.join(process.cwd(), videoPath);
 
-    } catch (err) {
-        console.error("yt-dlp stderr:\n", err.stderr);
-        throw err;
+            const metadata = await getYoutubeMetadata(youtubeUrl);
+
+            console.log("☁️ Uploading to Cloudinary...");
+
+            // 3️⃣ Upload VIDEO only
+            const videoUpload = await uploadFile(videoPath, {
+                resource_type: "video",
+                quality: "auto:low",
+                fetch_format: "mp4",
+            });
+
+            // 4️⃣ Cleanup
+            fs.unlinkSync(videoPath);
+            const audio = cloudinaryVideoToAudio(videoUpload.secure_url);
+
+            resolve({
+                youtube: {
+                    ...metadata
+                },
+                cloudinary: {
+                    videoUrl: videoUpload.secure_url,
+                    videoObj: videoUpload,
+                    audioUrl: audio
+                },
+            });
+
+        } catch (err) {
+            reject(err);
+        }
+    })
+}
+
+
+
+
+export function getYoutubeMetadata(youtubeUrl) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const metadata = await youtubedl(youtubeUrl, {
+                dumpSingleJson: true,
+                noPlaylist: true,
+
+                // keep same config as your audio downloader
+                jsRuntimes: "node",
+                extractorArgs: "youtube:player_client=android",
+            });
+
+            resolve({
+                id: metadata.id,
+                title: metadata.title,
+                description: metadata.description,
+
+                channel: metadata.channel,
+                channelId: metadata.channel_id,
+                uploader: metadata.uploader,
+
+                duration: metadata.duration,
+                durationString: metadata.duration_string,
+
+                uploadDate: metadata.upload_date,
+                viewCount: metadata.view_count,
+                likeCount: metadata.like_count,
+
+                thumbnail: metadata.thumbnail,
+                thumbnails: metadata.thumbnails,
+
+                tags: metadata.tags,
+                categories: metadata.categories,
+
+                webpageUrl: metadata.webpage_url,
+            });
+
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
+
+
+function cloudinaryVideoToAudio(videoUrl, options = {}) {
+    const {
+        format = "mp3",     // mp3 | wav | m4a
+        audioQuality,       // e.g. 32, 64, 128
+        startOffset,        // seconds
+        duration            // seconds
+    } = options;
+
+    if (!videoUrl.includes("/video/upload/")) {
+        throw new Error("Invalid Cloudinary video URL");
     }
+
+    const transformations = [];
+
+    if (startOffset !== undefined) transformations.push(`so_${startOffset}`);
+    if (duration !== undefined) transformations.push(`du_${duration}`);
+    transformations.push(`f_${format}`);
+    if (audioQuality) transformations.push(`aq_${audioQuality}`);
+
+    const transformationString = transformations.join(",");
+
+    return videoUrl
+        .replace("/video/upload/", `/video/upload/${transformationString}/`)
+        .replace(/\.\w+$/, `.${format}`);
 }

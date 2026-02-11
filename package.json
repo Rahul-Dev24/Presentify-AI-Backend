@@ -9,6 +9,9 @@
     "build": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "engines": {
+    "node": "20.19.0"
+  },
   "keywords": [],
   "author": "Rahul Singh",
   "license": "ISC",
@@ -19,10 +22,12 @@
     "@prisma/client": "^7.2.0",
     "assemblyai": "^4.22.1",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.2.1",
     "fluent-ffmpeg": "^2.1.2",
+    "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.3",
     "node-fetch": "^3.3.2",
     "pg": "^8.17.1",

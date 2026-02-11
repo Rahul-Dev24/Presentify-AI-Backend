@@ -11,6 +11,7 @@ enum FileType {
   VIDEO
   AUDIO
   SCREEN_RECORD
+  LOCAL_VIDEO
 }
 
 model User {
@@ -20,19 +21,63 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
-  updateAt  DateTime @default(now())
-  file      File[]   @relation("userModel")
+  updateAt  DateTime @updatedAt
+
+  files    File[]     @relation("userModel")
+  response Response[] @relation("userModel")
 }
 
 model File {
-  id       Int      @id @default(autoincrement())
-  videoId  String?
-  audioId  String?
-  videoUrl String?
-  audioUrl String?
-  user     User     @relation("userModel", fields: [id], references: [id])
-  type     FileType
+  id          Int      @id @default(autoincrement())
+  title       String
+  videoId     String?  @unique
+  audioId     String?  @unique
+  videoUrl    String?
+  audioUrl    String?
+  youtubeId   String?  @unique
+  description String?
+  tags        String[] @default([])
+
+  // 🔥 Foreign key
+  userId Int
+  user   User @relation("userModel", fields: [userId], references: [id], onDelete: Cascade)
+
+  durationString String
+  thumbnail      String?
+  categories     String[] @default([])
+  type           FileType
+
+  response Response[] @relation("fileModel")
 
   createdAt DateTime @default(now())
-  updateAt  DateTime @default(now())
+  updateAt  DateTime @updatedAt
+}
+
+model Response {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user   User @relation("userModel", fields: [userId], references: [id], onDelete: Cascade)
+
+  fileId Int
+  file   File @relation("fileModel", fields: [fileId], references: [id], onDelete: Cascade)
+
+  slides    Slides[] @relation("responseSlides")
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+}
+
+model Slides {
+  id Int @id @default(autoincrement())
+
+  responseId Int
+  response   Response @relation("responseSlides", fields: [responseId], references: [id], onDelete: Cascade)
+
+  slideIndex    Int
+  title         String
+  htmlContent   String
+  detailedNotes String
+  speakerNotes  String
+  createdAt     DateTime @default(now())
+  updateAt      DateTime @updatedAt
 }

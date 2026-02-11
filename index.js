@@ -6,6 +6,8 @@ import { dirname, join } from 'path';
 import router from './routes/getPPT.route.js';
 // import { startWorker, startCleanup } from './services/worker.js';
 import authRouter from './routes/auth.routes.js';
+import videoRouter from './routes/video.route.js';
+import pptRoute from './routes/ppt.route.js';
 import { prisma } from './utils/prisma.js';
 import cookieParser from 'cookie-parser';
 
@@ -34,6 +36,8 @@ const baseUrl = "/api/v1"
 
 // Routes
 app.use(`${baseUrl}/auth`, authRouter);
+app.use(`${baseUrl}/video`, videoRouter);
+app.use(`${baseUrl}/ppt`, pptRoute);
 app.use(baseUrl, router);
 
 // Health check
