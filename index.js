@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import router from './routes/getPPT.route.js';
@@ -11,7 +10,6 @@ import pptRoute from './routes/ppt.route.js';
 import { prisma } from './utils/prisma.js';
 import cookieParser from 'cookie-parser';
 
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
