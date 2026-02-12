@@ -1,44 +1,24 @@
-# ---------- Stage 1: Builder ----------
-FROM node:20.19.0 AS builder
-
-WORKDIR /app
-
-# Install system deps needed for build/runtime
-RUN apt-get update && \
-    apt-get install -y yt-dlp ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy package files first (better caching)
-COPY package*.json ./
-
-# Install ALL dependencies (not production-only)
-RUN npm install
-
-# Copy prisma schema before generate
-COPY prisma ./prisma
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Copy remaining project files
-COPY . .
-
-# ---------- Stage 2: Runtime ----------
 FROM node:20.19.0
 
 WORKDIR /app
 
-# Install runtime dependencies
+# Install system dependencies
 RUN apt-get update && \
     apt-get install -y yt-dlp ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy everything from builder
-COPY --from=builder /app ./
+# Copy everything
+COPY . .
+
+# Install dependencies (important: NOT production-only)
+RUN npm install
+
+# Generate Prisma Client explicitly
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
 ENV NODE_ENV=production
 ENV PORT=10000
 
 EXPOSE 10000
 
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
