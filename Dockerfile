@@ -1,30 +1,27 @@
-# -------- Stage 1: Builder --------
+# ---------- Stage 1: Build ----------
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies first (better caching)
 COPY package*.json ./
+
+# Install ALL dependencies (including prisma)
 RUN npm install
 
-# Copy prisma schema separately
+# Copy prisma folder
 COPY prisma ./prisma
 
 # Generate Prisma Client
 RUN npx prisma generate
 
-# Copy remaining source code
+# Copy remaining source
 COPY . .
 
-# -------- Stage 2: Production --------
+# ---------- Stage 2: Production ----------
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy node_modules (including generated .prisma client)
-COPY --from=builder /app/node_modules ./node_modules
-
-# Copy app source
 COPY --from=builder /app ./
 
 EXPOSE 8080
