@@ -1,4 +1,5 @@
-import { prisma } from "../utils/prisma";
+import { prisma } from "../utils/prisma.js";
+import { transcribeYoutubeVideo } from "./Assembly_AI.controller.js";
 
 export async function getAudioById(audioId) {
 }
@@ -27,6 +28,16 @@ export async function uploadAudio(req, res) {
 
         res.status(200).json({ success: true, message: "Audio uploaded successfully", data: audio });
 
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+}
+
+export const getTranscript = async (req, res) => {
+    const { audio } = req.body;
+    try {
+        const audioScript = await transcribeYoutubeVideo(audio);
+        res.status(200).json({ success: true, message: "Audio uploaded successfully", data: audioScript });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

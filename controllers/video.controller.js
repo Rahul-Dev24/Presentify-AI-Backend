@@ -1,7 +1,8 @@
 
 import { getAudioVideoAndUpload } from "../utils/upload_url.js";
 import { validateYouTubeUrl } from "../utils/validators.js";
-import { prisma } from "../utils/prisma.js"
+import { prisma } from "../utils/prisma.js";
+import axios from "axios";
 
 export async function getAllVideo(req, res) {
     const { page, limit } = req.body;
@@ -210,3 +211,24 @@ export const storeLocalVideo = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
+
+export const processTranscriptByPython = async (req, res) => {
+    try {
+        const { transcript } = req.body;
+        if (!transcript) {
+            return res.status(400).json({ success: false, message: "Requeried fields are missing." });
+        }
+        const slideData = await axios.post(`${process.env.PYTHON_API}`, { transcript });
+        console.log(slideData?.data);
+
+        if (!slideData?.data?.success) return res.status(400).json({ success: false, message: slideData?.message });
+        return res.json({
+            success: true,
+            message: 'Transcript processing completed',
+            data: slideData?.data
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+}

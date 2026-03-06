@@ -125,6 +125,7 @@ export async function getAudioVideoAndUpload(youtubeUrl) {
             videoPath = path.join(process.cwd(), videoPath);
 
             const metadata = await getYoutubeMetadata(youtubeUrl);
+            console.log("MetaData", metadata);
 
             console.log("☁️ Uploading to Cloudinary...");
 

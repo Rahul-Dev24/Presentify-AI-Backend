@@ -9,6 +9,9 @@ import videoRouter from './routes/video.route.js';
 import pptRoute from './routes/ppt.route.js';
 import { prisma } from './utils/prisma.js';
 import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 
 const __filename = fileURLToPath(import.meta.url);

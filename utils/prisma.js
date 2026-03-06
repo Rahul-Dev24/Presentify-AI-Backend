@@ -27,11 +27,8 @@
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 // Import from your specific generated path
-// import { PrismaClient } from '@prisma/client';
-
-import pkg from '@prisma/client';
-
-const { PrismaClient } = pkg;
+import { PrismaClient } from '@prisma/client';
+import 'dotenv/config';
 
 
 // 1. Get your connection string
