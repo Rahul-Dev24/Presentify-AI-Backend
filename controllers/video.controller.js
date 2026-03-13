@@ -92,6 +92,30 @@ export async function youtubeVideoUpload(req, res) {
         } else {
             const videoMetaData = await getAudioVideoAndUpload(youtubeUrl);
 
+            // const newFile = await prisma.file.create({
+            //     data: {
+            //         userId: 2,
+            //         videoId: videoMetaData?.youtube?.id,
+            //         title: videoMetaData?.youtube?.title,
+            //         description: videoMetaData?.youtube?.description,
+            //         durationString: videoMetaData?.youtube?.durationString,
+            //         thumbnail: videoMetaData?.youtube?.thumbnail,
+            //         tags: videoMetaData?.youtube?.tags,
+            //         categories: videoMetaData?.youtube?.categories,
+            //         videoUrl: videoMetaData?.local?.videoUrl,
+            //         audioUrl: videoMetaData?.cloudinary?.audioUrl,
+            //         audioId: videoMetaData?.cloudinary?.audioObj?.asset_id,
+            //         youtubeId: videoMetaData?.youtube?.id,
+            //         type: 'YOUTUBE',
+            //     }
+            // });
+
+            // return res.json({
+            //     success: true,
+            //     message: 'Video uploaded successfully',
+            //     data: newFile
+            // });
+
             const newFile = await prisma.file.create({
                 data: {
                     userId: 2,

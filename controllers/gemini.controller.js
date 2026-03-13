@@ -4,13 +4,13 @@
 
 import fetch from "node-fetch";
 import { transcribeYoutubeVideo } from "./Assembly_AI.controller.js";
-import { getAudioAndUpload } from "../utils/upload_url.js";
+// import { getAudioAndUpload } from "../utils/upload_url.js";
 import { getPrompt } from "../utils/prompt.js";
 
 export async function analyzeVideo(youtubeUrl) {
     try {
 
-        const audioUrl = await getAudioAndUpload(youtubeUrl);
+        // const audioUrl = await getAudioAndUpload(youtubeUrl);
 
         const transcriptText = await transcribeYoutubeVideo(audioUrl);
 
@@ -245,3 +245,75 @@ export function timestampToSeconds(timestamp) {
 //     throw err;
 //   }
 // }
+
+
+export const genrateSlides = async (slide) => {
+    const prompt = getPrompt(slide);
+
+    console.log('Sending request to Gemini...', prompt);
+
+    // Make direct REST API call with YouTube URL support (use v1beta for video features)
+    return new Promise(async (resolve, reject) => {
+        try {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+
+            const requestBody = {
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            // {
+                            //   file_data: {
+                            //     file_uri: youtubeUrl,
+                            //   },
+                            // },
+                            {
+                                text: prompt,
+                            },
+                        ],
+                    },
+                ],
+                generationConfig: {
+                    response_mime_type: "application/json",
+                },
+            };
+
+            const apiResponse = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (!apiResponse.ok) {
+                const errorText = await apiResponse.text();
+                throw new Error(`Gemini API error: ${apiResponse.status} - ${errorText}`);
+            }
+
+            const result = await apiResponse.json();
+
+            // const result = await toJsonArray(apiResponse);
+            const response = result.candidates[0].content.parts[0].text;
+            // const response = extractGeminiText(result);
+            console.log("apiResponse", result);
+
+            console.log('Gemini response received');
+            console.log('Raw response:', response);
+
+            // Parse JSON response
+            const jsonMatch = response.match(/\[[\s\S]*\]/);
+            if (!jsonMatch) {
+                console.warn('No JSON array found in Gemini response');
+                resolve([]); // Return an empty array for no slides
+            }
+
+            const slides = JSON.parse(jsonMatch[0]);
+
+            console.log(`Detected ${slides.length} slides`);
+            resolve(slides);
+        } catch (error) {
+            reject(error);
+        }
+    })
+}

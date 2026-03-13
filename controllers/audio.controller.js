@@ -35,8 +35,12 @@ export async function uploadAudio(req, res) {
 
 export const getTranscript = async (req, res) => {
     const { audio } = req.body;
+    if (!audio) {
+        return res.status(400).json({ success: false, message: "Requeried fields are missing." });
+    }
     try {
         const audioScript = await transcribeYoutubeVideo(audio);
+        if (!audioScript) return res.status(400).json({ success: false, message: "Transcription failed" });
         res.status(200).json({ success: true, message: "Audio uploaded successfully", data: audioScript });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

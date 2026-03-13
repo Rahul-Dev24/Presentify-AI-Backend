@@ -5,25 +5,6 @@ import { prisma } from "../utils/prisma.js";
 
 export const getHtmlResponse = async (req, res) => {
     const { fileId, audio } = req?.body;
-    // if (!fileId || !audio) {
-    //     return res.status(400).json({ success: false, message: "Requeried fields are missing." });
-    // }
-
-    // try {
-    //     const response = await prisma.response.findFirst({
-    //         where: { fileId: fileId },
-    //         orderBy: { id: "desc" }, // latest response
-    //         include: {
-    //             slides: {
-    //                 orderBy: { slideIndex: "asc" }
-    //             }
-    //         }
-    //     });
-
-    //     if (response) return res.status(200).json({ success: true, message: "File already exists", data: response });
-    // } catch (err) {
-    //     res.status(500).json({ success: false, message: err.message });
-    // }
 
     try {
         const audioScript = await transcribeYoutubeVideo(audio);
@@ -104,7 +85,7 @@ export const getHtmlResponse = async (req, res) => {
             // Create Response
             const responseRecord = await tx.response.create({
                 data: {
-                    userId: 2,
+                    userId: 5,
                     fileId: fileId,
                 },
             });

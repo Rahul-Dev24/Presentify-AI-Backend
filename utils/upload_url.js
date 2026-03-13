@@ -158,6 +158,63 @@ export async function getAudioVideoAndUpload(youtubeUrl) {
 }
 
 
+// export async function getAudioVideoAndUpload(youtubeUrl) {
+//     return new Promise(async (resolve, reject) => {
+
+//         const id = Date.now();
+//         const baseUrl = process.env.BASE_URL;
+
+//         const uploadDir = path.join(process.cwd(), "uploads");
+
+//         if (!fs.existsSync(uploadDir)) {
+//             fs.mkdirSync(uploadDir, { recursive: true });
+//         }
+
+//         const videoTemplate = path.join(uploadDir, `video_${id}.%(ext)s`);
+
+//         let videoPath;
+
+//         try {
+
+//             await youtubedl(youtubeUrl, {
+//                 format: "bestvideo[height<=480]+bestaudio/best",
+//                 mergeOutputFormat: "mp4",
+//                 output: videoTemplate,
+//                 noPlaylist: true,
+//                 jsRuntimes: "node",
+//                 extractorArgs: "youtube:player_client=android",
+//             });
+
+//             const fileName = fs.readdirSync(uploadDir)
+//                 .find(f => f.startsWith(`video_${id}`));
+
+//             if (!fileName) {
+//                 throw new Error("Download failed: video file not found");
+//             }
+
+//             videoPath = path.join(uploadDir, fileName);
+
+//             const metadata = await getYoutubeMetadata(youtubeUrl);
+
+//             // ✅ Create public URL
+//             const videoUrl = `${baseUrl}/uploads/${fileName}`;
+
+//             resolve({
+//                 youtube: {
+//                     ...metadata
+//                 },
+//                 local: {
+//                     videoPath: videoPath,
+//                     videoUrl: videoUrl
+//                 }
+//             });
+
+//         } catch (err) {
+//             reject(err);
+//         }
+//     });
+// }
+
 
 
 export function getYoutubeMetadata(youtubeUrl) {

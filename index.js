@@ -10,6 +10,7 @@ import pptRoute from './routes/ppt.route.js';
 import { prisma } from './utils/prisma.js';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import path from "path";
 
 dotenv.config();
 
@@ -25,7 +26,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cookieParser());
 
 app.use(cors({
-    origin: "http://localhost:3000", // Must be specific, cannot be "*"
+    origin: ["https://0rlvc7lt-3000.inc1.devtunnels.ms", "http://localhost:3000"],
     credentials: true                // Required for withCredentials: true
 }));
 app.use(express.static(join(__dirname, 'public')));
@@ -34,6 +35,7 @@ app.use(express.json({ limit: '50mb' }));
 
 const baseUrl = "/api/v1"
 
+app.use(`/uploads`, express.static(path.join(process.cwd(), "uploads")));
 
 // Routes
 app.use(`${baseUrl}/auth`, authRouter);
