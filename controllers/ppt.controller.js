@@ -4,14 +4,36 @@ import { getPrompt } from "../utils/prompt.js";
 import { prisma } from "../utils/prisma.js";
 
 export const getHtmlResponse = async (req, res) => {
-    const { fileId, audio } = req?.body;
+    const { fileId, slideArray } = req.body;
 
     try {
-        const audioScript = await transcribeYoutubeVideo(audio);
-        console.log(audioScript);
+        if (!slideArray || !fileId) {
+            return res.status(400).json({ success: false, message: "Requeried fields are missing." });
+        }
 
-        if (!audioScript) return res.status(400).json({ success: false, message: "Audio script is empty" });
-        const prompt = getPrompt(audioScript);
+        const file = await prisma.file.findUnique({
+            where: {
+                id: fileId,
+            },
+            include: {
+                response: {
+                    include: {
+                        slides: {
+                            orderBy: {
+                                slideIndex: 'asc', // important for ordered slides
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        console.log("file", file);
+
+
+        if (file?.response?.length > 0) {
+            return res.status(200).json({ success: true, message: "Slides fetched successfully", data: file });
+        }
+        const prompt = getPrompt(slideArray);
 
         // Make direct REST API call with YouTube URL support (use v1beta for video features)
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
@@ -116,3 +138,28 @@ export const getHtmlResponse = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
+
+export const getProjectByUserId = async (req, res) => {
+    try {
+        const { user } = req;
+        if (!user) {
+            return res.status(400).json({ success: false, message: "Requeried fields are missing." });
+        }
+        const allProjects = await prisma.response.findMany({
+            include: {
+                slides: true,
+            },
+            where: {
+                userId: user?.id
+            }
+        });
+        res.status(200).json({
+            success: true,
+            message: "All projects",
+            data: allProjects,
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+}

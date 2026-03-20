@@ -69,12 +69,17 @@ export async function updateVideo(req, res) {
 export async function youtubeVideoUpload(req, res) {
     try {
         const { youtubeUrl } = req.body;
+        const { user } = req;
 
         const videoId = getYoutubeVideoId(youtubeUrl);
 
         // Validate input
         if (!youtubeUrl) {
             return res.status(400).json({ success: false, error: 'YoutubeUrl and email are required' });
+        }
+
+        if (!user) {
+            return res.status(400).json({ success: false, error: 'User is required' });
         }
 
         if (!validateYouTubeUrl(youtubeUrl) && !videoId) {
@@ -88,6 +93,14 @@ export async function youtubeVideoUpload(req, res) {
         });
 
         if (file) {
+            await prisma.file.update({
+                where: { id: file?.id },
+                data: {
+                    users: {
+                        connect: { id: user?.id }
+                    },
+                }
+            })
             return res.status(200).json({ success: true, message: 'Video already exists', data: file });
         } else {
             const videoMetaData = await getAudioVideoAndUpload(youtubeUrl);
@@ -118,7 +131,9 @@ export async function youtubeVideoUpload(req, res) {
 
             const newFile = await prisma.file.create({
                 data: {
-                    userId: 2,
+                    users: {
+                        connect: { id: user?.id }
+                    },
                     videoId: videoMetaData?.youtube?.id,
                     title: videoMetaData?.youtube?.title,
                     description: videoMetaData?.youtube?.description,
@@ -150,17 +165,20 @@ export async function youtubeVideoUpload(req, res) {
 
 
 export async function deleteVideo(req, res) {
+    const { fileId } = req.body;
+    const { user } = req;
+    if (!user) return res.status(400).json({ success: false, message: "User is required" });
+    if (!fileId) return res.status(400).json({ success: false, message: "File id is required" });
+
     try {
-        const id = req.params.id;
-
-        if (!id) {
-            return res.status(400).json({ success: false, message: "id is required" });
-        }
-
-        const deletedVideo = await prisma.file.delete({
-            where: {
-                id: id
-            }
+        const deletedVideo = await prisma.file.update({
+            where: { id: fileId },
+            data: {
+                users: {
+                    disconnect: { id: user?.id }
+                }
+            },
+            include: { users: true }
         });
 
         res.status(200).json({ success: true, message: "Video deleted successfully", data: deletedVideo });
@@ -204,13 +222,16 @@ export const getYoutubeVideoId = (url) => {
 
 export const storeLocalVideo = async (req, res) => {
     const { videoId, title, tags, type, audioUrl, videoUrl, categories, duration } = req.body;
-    if (!videoId || !title || !type || !audioUrl || !videoUrl || !duration) {
+    const { user } = req.user;
+    if (!videoId || !title || !type || !audioUrl || !videoUrl || !duration || !user) {
         return res.status(400).json({ success: false, message: "Requeried fields are missing." });
     }
     try {
         const newFile = await prisma.file.create({
             data: {
-                userId: 2,
+                users: {
+                    connect: { id: user?.id }
+                },
                 videoId: videoId,
                 title: title,
                 durationString: duration,
@@ -252,6 +273,70 @@ export const processTranscriptByPython = async (req, res) => {
             message: 'Transcript processing completed',
             data: slideData?.data
         });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+}
+
+
+export const getVideoByUserId = async (req, res) => {
+    const { user } = req;
+    const { search } = req?.body || {};
+
+    if (!user) {
+        return res.status(400).json({
+            success: false,
+            message: "Required fields are missing."
+        });
+    }
+
+    try {
+        const allVideos = await prisma.file.findMany({
+            where: {
+                users: {
+                    some: { id: user.id }
+                }
+            }
+
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Videos fetched successfully",
+            data: allVideos,
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+export const getSlidesByFileId = async (req, res) => {
+    const { fileId } = req.body;
+    if (!fileId) {
+        return res.status(400).json({ success: false, message: "Requeried fields are missing." });
+    }
+    try {
+        const allSlides = await prisma.file.findUnique({
+            where: {
+                id: fileId,
+            },
+            include: {
+                response: {
+                    include: {
+                        slides: {
+                            orderBy: {
+                                slideIndex: 'asc', // important for ordered slides
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        res.status(200).json({ success: true, message: "Slides fetched successfully", data: allSlides });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

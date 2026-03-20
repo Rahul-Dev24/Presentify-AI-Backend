@@ -40,8 +40,9 @@ model File {
   tags        String[] @default([])
 
   // 🔥 Foreign key
-  userId Int
-  user   User @relation("userModel", fields: [userId], references: [id], onDelete: Cascade)
+  // userIds Int[]
+  // users   User[] @relation("userModel", fields: [userIds], references: [id], onDelete: Cascade)
+  users User[] @relation("userModel") // ✅ many-to-many
 
   durationString String
   thumbnail      String?

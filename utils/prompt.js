@@ -101,28 +101,84 @@ Your job:
 SLIDE CANVAS REQUIREMENTS
 --------------------------------
 
-Each slide MUST fit inside a PowerPoint widescreen slide.
-
-Exact size:
-Width: 1280px
-Height: 720px
-Aspect ratio: 16:9
-
-The root container MUST be:
+Each slide MUST follow this exact HTML structure to prevent layout breaking:
 
 <div class="slide">
+  <div class="bg-layer">
+    </div>
+  
+  <div class="content-layer">
+    <div class="header">
+      <h1>Title Here</h1>
+    </div>
+    <div class="main-content">
+      <ul>
+        <li>Bullet 1</li>
+        <li>Bullet 2</li>
+      </ul>
+    </div>
+    <div class="visual-element">
+      </div>
+  </div>
+</div>
 
-CSS rules for root slide:
+CSS Rules for the AI:
 
-.slide{
-box-sizing:border-box;
-display:flex;
-flex-direction:column;
-justify-content:center;
-overflow:hidden;
-position:relative;
-font-family:Inter,Arial,sans-serif;
+.slide {
+  width: 1280px;
+  height: 720px;
+  position: relative;
+  overflow: hidden;
+  background: #0f172a;
+  color: #e2e8f0;
 }
+
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.content-layer {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  padding: 60px 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Keeps title at top, bullets middle */
+  box-sizing: border-box;
+}
+
+h1 {
+  font-size: 64px;
+  margin: 0;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+ul {
+  margin-top: 40px;
+  list-style: none;
+}
+
+li {
+  font-size: 28px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+--------------------------------
+STRICT CSS UNIT RULES
+--------------------------------
+To ensure content NEVER overflows the 1280x720 canvas:
+- Title (h1): Max 48px to 56px.
+- Bullets (li): Max 24px to 28px.
+- Internal Padding: Always 60px to 80px.
+- All containers MUST have 'box-sizing: border-box'.
+- Do NOT use 'height: 100vh' inside the htmlContent; use 'height: 720px'.
 
 --------------------------------
 VISUAL DESIGN RULES
