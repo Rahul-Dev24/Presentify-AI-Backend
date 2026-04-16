@@ -24,6 +24,8 @@ model User {
   createdAt DateTime @default(now())
   updateAt  DateTime @updatedAt
 
+  creditCount Int @default(0)
+
   files    File[]     @relation("userModel")
   response Response[] @relation("userModel")
 }

@@ -11,6 +11,9 @@ import { prisma } from './utils/prisma.js';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from "path";
+import dRouter from './routes/dashboard..route.js';
+import pRouter from './routes/project.route.js';
+import userRouter from './routes/users.routes.js';
 
 dotenv.config();
 
@@ -41,6 +44,9 @@ app.use(`/uploads`, express.static(path.join(process.cwd(), "uploads")));
 app.use(`${baseUrl}/auth`, authRouter);
 app.use(`${baseUrl}/video`, videoRouter);
 app.use(`${baseUrl}/ppt`, pptRoute);
+app.use(`${baseUrl}/dashboard`, dRouter);
+app.use(`${baseUrl}/project`, pRouter);
+app.use(`${baseUrl}/user`, userRouter);
 app.use(baseUrl, router);
 
 // Health check

@@ -5,6 +5,7 @@ import { prisma } from "../utils/prisma.js";
 
 export const getHtmlResponse = async (req, res) => {
     const { fileId, slideArray } = req.body;
+    const userId = req.user?.id; // ✅ fix
 
     try {
         if (!slideArray || !fileId) {
@@ -75,6 +76,17 @@ export const getHtmlResponse = async (req, res) => {
 
         const result = await apiResponse.json();
 
+        const updatedUser = await prisma.user.update({
+            where: {
+                id: userId, // Ensure this is an Int, as per your schema
+            },
+            data: {
+                creditCount: {
+                    increment: 1, // Adds exactly 1 to the existing value
+                },
+            },
+        });
+
         // 2️⃣ Extract text safely
         const rawText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (!rawText) {
@@ -107,7 +119,7 @@ export const getHtmlResponse = async (req, res) => {
             // Create Response
             const responseRecord = await tx.response.create({
                 data: {
-                    userId: 5,
+                    userId: userId,
                     fileId: fileId,
                 },
             });

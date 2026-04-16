@@ -221,23 +221,23 @@ export const getYoutubeVideoId = (url) => {
 
 
 export const storeLocalVideo = async (req, res) => {
-    const { videoId, title, tags, type, audioUrl, videoUrl, categories, duration } = req.body;
-    const { user } = req.user;
-    if (!videoId || !title || !type || !audioUrl || !videoUrl || !duration || !user) {
+    const { videoId, title, tags, type, audioUrl, videoUrl, duration } = req.body;
+    const { user } = req;
+
+    if (!videoId || !title || !type || !audioUrl || !videoUrl || !duration) {
         return res.status(400).json({ success: false, message: "Requeried fields are missing." });
     }
     try {
         const newFile = await prisma.file.create({
             data: {
                 users: {
-                    connect: { id: user?.id }
+                    connect: [{ id: user?.id }]
                 },
                 videoId: videoId,
                 title: title,
                 durationString: duration,
                 thumbnail: "https://res.cloudinary.com/dowonjpws/image/upload/v1770634332/Gemini_Generated_Image_a06kqua06kqua06k_scbs9l.png",
                 tags: tags,
-                categories: categories,
                 videoUrl: videoUrl,
                 videoId: videoId,
                 audioUrl: audioUrl,
@@ -279,14 +279,49 @@ export const processTranscriptByPython = async (req, res) => {
 }
 
 
+// export const getVideoByUserId = async (req, res) => {
+//     const { user } = req;
+//     const { search } = req?.body || {};
+
+//     if (!user) {
+//         return res.status(400).json({
+//             success: false,
+//             message: "Required fields are missing."
+//         });
+//     }
+
+//     try {
+//         const allVideos = await prisma.file.findMany({
+//             where: {
+//                 users: {
+//                     some: { id: user.id }
+//                 }
+//             }
+
+//         });
+
+//         res.status(200).json({
+//             success: true,
+//             message: "Videos fetched successfully",
+//             data: allVideos,
+//         });
+
+//     } catch (err) {
+//         res.status(500).json({
+//             success: false,
+//             message: err.message
+//         });
+//     }
+// };
+
 export const getVideoByUserId = async (req, res) => {
     const { user } = req;
-    const { search } = req?.body || {};
+    const { search } = req.query;
 
     if (!user) {
         return res.status(400).json({
             success: false,
-            message: "Required fields are missing."
+            message: "Required fields are missing.",
         });
     }
 
@@ -294,10 +329,42 @@ export const getVideoByUserId = async (req, res) => {
         const allVideos = await prisma.file.findMany({
             where: {
                 users: {
-                    some: { id: user.id }
-                }
-            }
+                    some: { id: user.id },
+                },
 
+                ...(search
+                    ? {
+                        OR: [
+                            {
+                                title: {
+                                    contains: search,
+                                    mode: "insensitive",
+                                },
+                            },
+                            {
+                                description: {
+                                    contains: search,
+                                    mode: "insensitive",
+                                },
+                            },
+                            {
+                                tags: {
+                                    has: search, // 🔥 safer than hasSome
+                                },
+                            },
+                            {
+                                categories: {
+                                    has: search,
+                                },
+                            },
+                        ],
+                    }
+                    : {}),
+            },
+
+            orderBy: {
+                createdAt: "desc",
+            },
         });
 
         res.status(200).json({
@@ -309,7 +376,7 @@ export const getVideoByUserId = async (req, res) => {
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: err.message
+            message: err.message,
         });
     }
 };
