@@ -15,17 +15,16 @@ export const authMiddleware = (req, res, next) => {
     if (!token && req.cookies?.token) {
         token = req.cookies.token;
     }
-
     // 3. If still no token
     if (!token) {
         return res.status(401).json({ message: "Token missing" });
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token || req?.cookies?.token, process.env.JWT_SECRET);
         req.user = decoded;
         next();
-    } catch {
+    } catch (err) {
         res.status(401).json({ message: "Invalid token" });
     }
 };

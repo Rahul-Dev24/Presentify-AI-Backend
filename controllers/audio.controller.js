@@ -14,7 +14,7 @@ export async function uploadAudio(req, res) {
 
         const audio = await prisma.audio.create({
             data: {
-                userId: 4,
+                userId: req?.user?.id,
                 title: title,
                 audioId: asset_id,
                 audioUrl: audioUrl,

@@ -4,7 +4,7 @@ import { FILE_TYPE_META } from "../utils/utils.js";
 
 export const getFileSourceStatsByUser = async (req, res) => {
 
-    const { user } = req.user;
+    const { user } = req;
 
     const grouped = await prisma.file.groupBy({
         by: ["type"],

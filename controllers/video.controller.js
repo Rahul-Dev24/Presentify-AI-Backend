@@ -12,14 +12,14 @@ export async function getAllVideo(req, res) {
     try {
         const allVideos = await prisma.file.findMany({
             where: {
-                userId: 4
+                userId: user?.id
             },
             skip: (page - 1) * limit,
             take: limit
         });
         const count = await prisma.file.count({
             where: {
-                userId: 4
+                userId: req?.user?.id
             }
         });
         const totalPages = Math.ceil(count / limit);
