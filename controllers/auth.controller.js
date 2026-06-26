@@ -60,21 +60,21 @@ export const login = async (req, res) => {
             { expiresIn: "1h" }
         );
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: false, // true ONLY in HTTPS
-            sameSite: "lax",
-            path: "/",               // 🔥 IMPORTANT
-            maxAge: 60 * 60 * 1000,
-        });
-
         // res.cookie("token", token, {
         //     httpOnly: true,
-        //     secure: true,        // required for HTTPS
-        //     sameSite: "none",    // 🔥 required for cross-site cookies
-        //     path: "/",
-        //     maxAge: 60 * 60 * 1000
+        //     secure: false, // true ONLY in HTTPS
+        //     sameSite: "lax",
+        //     path: "/",               // 🔥 IMPORTANT
+        //     maxAge: 60 * 60 * 1000,
         // });
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,        // required for HTTPS
+            sameSite: "none",    // 🔥 required for cross-site cookies
+            path: "/",
+            maxAge: 60 * 60 * 1000
+        });
 
         res.json({ success: true, message: "Login successful", token });
 
