@@ -264,7 +264,7 @@ export const processTranscriptByPython = async (req, res) => {
         if (!transcript) {
             return res.status(400).json({ success: false, message: "Requeried fields are missing." });
         }
-        const slideData = await axios.post(`${process.env.PYTHON_API}`, { transcript });
+        const slideData = await axios.post(`https://transcriptprocessor.onrender.com/generate-slides`, { transcript });
         console.log(slideData?.data);
 
         if (!slideData?.data?.success) return res.status(400).json({ success: false, message: slideData?.message });
