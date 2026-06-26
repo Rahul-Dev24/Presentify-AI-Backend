@@ -189,29 +189,60 @@ export async function deleteVideo(req, res) {
 
 
 
+// export const getYoutubeVideoId = (url) => {
+//     try {
+//         const parsedUrl = new URL(url);
+
+//         // 1️⃣ Standard watch URL
+//         const v = parsedUrl.searchParams.get("v");
+//         if (v) return v;
+
+//         // 2️⃣ youtu.be short URL
+//         if (parsedUrl.hostname === "youtu.be") {
+//             return parsedUrl.pathname.slice(1);
+//         }
+
+//         // 3️⃣ /embed/VIDEO_ID
+//         if (parsedUrl.pathname.includes("/embed/")) {
+//             return parsedUrl.pathname.split("/embed/")[1];
+//         }
+
+//         // 4️⃣ /shorts/VIDEO_ID
+//         if (parsedUrl.pathname.includes("/shorts/")) {
+//             return parsedUrl.pathname.split("/shorts/")[1];
+//         }
+
+//         return null;
+//     } catch {
+//         return null;
+//     }
+// };
 
 export const getYoutubeVideoId = (url) => {
     try {
         const parsedUrl = new URL(url);
+        const hostname = parsedUrl.hostname.replace("www.", "");
 
-        // 1️⃣ Standard watch URL
+        // Standard watch URL
         const v = parsedUrl.searchParams.get("v");
         if (v) return v;
 
-        // 2️⃣ youtu.be short URL
-        if (parsedUrl.hostname === "youtu.be") {
-            return parsedUrl.pathname.slice(1);
+        // youtu.be
+        if (hostname === "youtu.be") {
+            return parsedUrl.pathname.split("/")[1] || null;
         }
 
-        // 3️⃣ /embed/VIDEO_ID
-        if (parsedUrl.pathname.includes("/embed/")) {
-            return parsedUrl.pathname.split("/embed/")[1];
-        }
+        // /embed/:id
+        const embedMatch = parsedUrl.pathname.match(/^\/embed\/([^/?]+)/);
+        if (embedMatch) return embedMatch[1];
 
-        // 4️⃣ /shorts/VIDEO_ID
-        if (parsedUrl.pathname.includes("/shorts/")) {
-            return parsedUrl.pathname.split("/shorts/")[1];
-        }
+        // /shorts/:id
+        const shortsMatch = parsedUrl.pathname.match(/^\/shorts\/([^/?]+)/);
+        if (shortsMatch) return shortsMatch[1];
+
+        // /live/:id
+        const liveMatch = parsedUrl.pathname.match(/^\/live\/([^/?]+)/);
+        if (liveMatch) return liveMatch[1];
 
         return null;
     } catch {
