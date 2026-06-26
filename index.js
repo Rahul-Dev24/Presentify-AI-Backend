@@ -14,6 +14,7 @@ import path from "path";
 import dRouter from './routes/dashboard..route.js';
 import pRouter from './routes/project.route.js';
 import userRouter from './routes/users.routes.js';
+import isLoginRouter from './routes/isLogin.route.js';
 
 dotenv.config();
 
@@ -42,6 +43,7 @@ app.use(`/uploads`, express.static(path.join(process.cwd(), "uploads")));
 
 // Routes
 app.use(`${baseUrl}/auth`, authRouter);
+app.use(`${baseUrl}/islogin`, isLoginRouter);
 app.use(`${baseUrl}/video`, videoRouter);
 app.use(`${baseUrl}/ppt`, pptRoute);
 app.use(`${baseUrl}/dashboard`, dRouter);
