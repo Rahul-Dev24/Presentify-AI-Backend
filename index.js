@@ -29,7 +29,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cookieParser());
 
 app.use(cors({
-    origin: ["https://0rlvc7lt-3000.inc1.devtunnels.ms", "http://localhost:3000"],
+    origin: ["https://presentify-ai.netlify.app", "http://localhost:3000"],
     credentials: true                // Required for withCredentials: true
 }));
 app.use(express.static(join(__dirname, 'public')));
